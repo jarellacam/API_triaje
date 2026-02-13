@@ -1,7 +1,8 @@
 import os
 import json
 from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Security
+from fastapi.security import APIKeyHeader
 from pydantic import BaseModel, Field
 from typing import List
 from groq import AsyncGroq
@@ -33,9 +34,23 @@ if not api_key:
 
 client = AsyncGroq(api_key=api_key)
 
+# CAPA DE SEGURIDAD 
+# Le decimos a FastAPI que busque una cabecera llamada "X-API-KEY"
+api_key_header = APIKeyHeader(name="X-API-KEY", auto_error=True)
+
+# Definimos nuestra clave maestra (si no hay una en el .env, usa esta por defecto para pruebas)
+API_KEY_MAESTRA = os.environ.get("API_KEY_MAESTRA", "mi_clave_secreta_local_123")
+
+# Función que verifica que la clave proporcionada coincida con la nuestra
+def verificar_api_key(api_key_recibida: str = Security(api_key_header)):
+    if api_key_recibida != API_KEY_MAESTRA:
+        raise HTTPException(status_code=403, detail="Acceso denegado. API Key inválida.")
+    return api_key_recibida
+
 # ENDPOINT PRINCIPAL 
+# Fíjate que aquí hemos añadido 'api_key: str = Security(verificar_api_key)'
 @app.post("/api/v1/triage", response_model=TicketResponse)
-async def analizar_ticket(request: TicketRequest):
+async def analizar_ticket(request: TicketRequest, api_key: str = Security(verificar_api_key)):
     # Construimos el Prompt inyectando las categorías dinámicas que envíe el cliente
     system_prompt = f"""
     Eres un asistente experto en atención al cliente B2B. Tu tarea es analizar el ticket de soporte y devolver ÚNICAMENTE un objeto JSON válido.
