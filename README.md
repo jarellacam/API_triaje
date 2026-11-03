@@ -39,6 +39,22 @@ uvicorn app.main:app --reload
 
 La documentación interactiva queda en `http://localhost:8000/docs`.
 
+O con Docker:
+
+```bash
+docker build -t api-triaje .
+docker run -p 8000:8000 --env-file .env api-triaje
+```
+
+## Tests
+
+Los tests simulan la respuesta del LLM, así que no consumen créditos de Groq:
+
+```bash
+pip install pytest httpx
+pytest
+```
+
 ## Uso
 
 ```bash
@@ -74,8 +90,8 @@ Respuesta:
 
 ## Próximos pasos
 
-- Tests con pytest y un conjunto de tickets etiquetados para medir la precisión de la clasificación.
-- Dockerfile para despliegue.
+- Un conjunto de tickets etiquetados para medir la precisión real de la clasificación.
+- Validar que `categoria_sugerida` pertenece siempre a las categorías enviadas.
 
 ---
 
