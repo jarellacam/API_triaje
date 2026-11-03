@@ -37,7 +37,9 @@ client = AsyncGroq(api_key=api_key)
 
 # SEGURIDAD
 api_key_header = APIKeyHeader(name="X-API-KEY", auto_error=True)
-API_KEY_MAESTRA = os.environ.get("API_KEY_MAESTRA", "mi_clave_secreta_local_123")
+API_KEY_MAESTRA = os.environ.get("API_KEY_MAESTRA")
+if not API_KEY_MAESTRA:
+    raise ValueError("Falta API_KEY_MAESTRA")
 
 def verificar_api_key(api_key_recibida: str = Security(api_key_header)):
     if api_key_recibida != API_KEY_MAESTRA:
